@@ -8,14 +8,14 @@ import (
 
 // User のレスポンスフォーマット
 type User struct {
-	UserID int64
-	Name   string
+	UserID int64  `json:"user_id"`
+	Name   string `json:"name"`
 }
 
 // Responce はJsonレスポンスのフォーマット
 type Responce struct {
-	Status string
-	Users  []User
+	Status string `json:"status"`
+	Users  []User `json:"users"`
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
