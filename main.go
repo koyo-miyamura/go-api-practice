@@ -14,20 +14,16 @@ type User struct {
 
 // Responce はJsonレスポンスのフォーマット
 type Responce struct {
-	Status string `json:"status"`
+	Status uint32 `json:"status"`
 	Users  []User `json:"users"`
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println("/ handled")
 	w.Header().Set("Content-Type", "application/json")
-	// res := map[string]interface{}{
-	// 	"1": "fuga",
-	// 	"2": "hoge",
-	// }
 	res := Responce{
-		"ok",
-		[]User{
+		Status: http.StatusOK,
+		Users: []User{
 			{
 				UserID: 1,
 				Name:   "hoge",
