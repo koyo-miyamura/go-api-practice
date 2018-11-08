@@ -1,10 +1,11 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import "time"
 
 // User モデルの定義
 type User struct {
-	gorm.Model
-	UserID int64  `json:"user_id"`
-	Name   string `json:"name"`
+	ID        uint64    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

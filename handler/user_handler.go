@@ -29,11 +29,11 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 		Status: http.StatusOK,
 		Users: []model.User{
 			{
-				UserID: 1,
-				Name:   "hoge",
+				ID:   1,
+				Name: "hoge",
 			}, {
-				UserID: 2,
-				Name:   "fuga",
+				ID:   2,
+				Name: "fuga",
 			},
 		},
 	}
