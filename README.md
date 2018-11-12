@@ -2,6 +2,7 @@
 
 ### Quick Start
 ```
-go run db/migration.go
+go run lib/migration/main.go
+go run lib/seed/main.go
 go run main.go
 ```
