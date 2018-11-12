@@ -39,8 +39,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	users := []model.User{}
 	db.Find(&users)
 	res := Responce{
-		Status: http.StatusOK,
-		Users:  users,
+		Users: users,
 	}
 
 	result, err := json.Marshal(res)
