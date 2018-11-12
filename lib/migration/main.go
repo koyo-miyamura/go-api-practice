@@ -6,7 +6,10 @@ import (
 )
 
 func main() {
-	db := util.DbOpen()
+	db, err := util.DbOpen()
+	if err != nil {
+		panic(err)
+	}
 	defer db.Close()
 
 	db.DropTableIfExists(&model.User{})

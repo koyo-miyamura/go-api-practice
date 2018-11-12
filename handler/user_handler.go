@@ -26,7 +26,10 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	log.Println("/ handled")
 	w.Header().Set("Content-Type", "application/json")
 
-	db := util.DbOpen()
+	db, err := util.DbOpen()
+	if err != nil {
+		panic(err)
+	}
 	defer db.Close()
 
 	users := []model.User{}
