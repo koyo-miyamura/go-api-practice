@@ -17,7 +17,7 @@ type Responce struct {
 // NewUserServer create user model's handler
 func NewUserServer() *http.ServeMux {
 	server := http.NewServeMux()
-	server.HandleFunc("/", UserIndex)
+	server.HandleFunc("/users", UserIndex)
 	return server
 }
 
