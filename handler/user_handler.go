@@ -12,8 +12,7 @@ import (
 
 // Responce はJsonレスポンスのフォーマット
 type Responce struct {
-	Status uint32       `json:"status"`
-	Users  []model.User `json:"users"`
+	Users []model.User `json:"users"`
 }
 
 // NewUserServer create user model's handler
