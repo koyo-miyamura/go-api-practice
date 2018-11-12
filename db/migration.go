@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -19,19 +18,16 @@ func main() {
 	db.LogMode(true)
 
 	// マイグレーション
+	db.DropTableIfExists(&model.User{})
 	db.AutoMigrate(&model.User{})
 	db.Model(&model.User{}).AddIndex("idx_user_name", "name")
 
 	// 初期seedも設定(実行ごとに挿入)
 	users := []model.User{
 		{
-			Name:      "hoge",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Name: "hoge",
 		}, {
-			Name:      "fuga",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Name: "fuga",
 		},
 	}
 	for _, user := range users {
