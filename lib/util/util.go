@@ -8,7 +8,7 @@ import (
 
 // DbOpen は データベースを開きます
 func DbOpen() (*gorm.DB, error) {
-	db, err := gorm.Open("sqlite3", "database.db")
+	db, err := gorm.Open("sqlite3", "sqlite3/database.db")
 	if err != nil {
 		errors.Wrap(err, "dbに接続できませんでした")
 	}
