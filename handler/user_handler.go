@@ -5,36 +5,43 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/koyo-miyamura/go-api-practice/lib/util"
+	"github.com/jinzhu/gorm"
+
 	"github.com/koyo-miyamura/go-api-practice/model"
 )
 
-// Responce はJsonレスポンスのフォーマット
-type Responce struct {
+// UserHandler はどのDBを使うかを保持します
+// 主にテスト用にDBを切り替えるために使用します
+type UserHandler struct {
+	db *gorm.DB
+}
+
+// NewUserHandler はUserHandlerを生成して返します
+func NewUserHandler(db *gorm.DB) *UserHandler {
+	return &UserHandler{db}
+}
+
+// IndexResponse is response format for Index
+type IndexResponse struct {
 	Users []model.User `json:"users"`
 }
 
 // NewUserServer create user model's handler
-func NewUserServer() *http.ServeMux {
+func (h *UserHandler) NewUserServer() *http.ServeMux {
 	server := http.NewServeMux()
-	server.HandleFunc("/users", UserIndex)
+	server.HandleFunc("/users", h.Index)
 	return server
 }
 
-// UserIndex is user model's index
-func UserIndex(w http.ResponseWriter, r *http.Request) {
-	log.Println("/ handled")
+// Index is user model's index
+func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
+	log.Println("/users handled")
+
 	w.Header().Set("Content-Type", "application/json")
 
-	db, err := util.DbOpen()
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
 	users := []model.User{}
-	db.Find(&users)
-	res := Responce{
+	h.db.Find(&users)
+	res := IndexResponse{
 		Users: users,
 	}
 
