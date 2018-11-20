@@ -21,16 +21,16 @@ func NewUserHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{db}
 }
 
-// IndexResponse is response format for Index
-type IndexResponse struct {
-	Users []model.User `json:"users"`
-}
-
 // NewUserServer create user model's handler
 func (h *UserHandler) NewUserServer() *http.ServeMux {
 	server := http.NewServeMux()
 	server.HandleFunc("/users", h.Index)
 	return server
+}
+
+// IndexResponse is response format for Index
+type IndexResponse struct {
+	Users []model.User `json:"users"`
 }
 
 // Index is user model's index
