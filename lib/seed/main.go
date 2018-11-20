@@ -12,6 +12,7 @@ func main() {
 	}
 	defer db.Close()
 
+	db.Delete(model.User{})
 	users := []model.User{
 		{
 			Name: "hoge",
