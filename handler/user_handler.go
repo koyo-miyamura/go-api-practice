@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/jinzhu/gorm"
-
 	"github.com/koyo-miyamura/go-api-practice/model"
 )
 
@@ -28,22 +27,14 @@ func (h *UserHandler) NewUserServer() *http.ServeMux {
 	return server
 }
 
-// IndexResponse is response format for Index
-type IndexResponse struct {
-	Users []model.User `json:"users"`
-}
-
 // Index is user model's index
 func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 	log.Println("/users handled")
 
 	w.Header().Set("Content-Type", "application/json")
 
-	users := []model.User{}
-	h.db.Find(&users)
-	res := IndexResponse{
-		Users: users,
-	}
+	um := model.NewUserModel(h.db)
+	res := um.Index()
 
 	result, err := json.Marshal(res)
 	if err != nil {

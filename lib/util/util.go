@@ -9,7 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // sqlite3
-	"github.com/koyo-miyamura/go-api-practice/model"
+	"github.com/koyo-miyamura/go-api-practice/schema"
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +35,7 @@ func TestDbNew() (*gorm.DB, error) {
 	db.LogMode(true)
 
 	// テスト用のdbをmigrate
-	for _, model := range model.Models() {
+	for _, model := range schema.Models() {
 		db.AutoMigrate(model)
 	}
 
@@ -44,7 +44,7 @@ func TestDbNew() (*gorm.DB, error) {
 
 // TestDbClose はテスト用のDBを消去してCloseします
 func TestDbClose(db *gorm.DB) {
-	for _, model := range model.Models() {
+	for _, model := range schema.Models() {
 		db.Delete(model)
 	}
 	db.Close()
