@@ -1,4 +1,4 @@
-package mock
+package stub
 
 import (
 	"github.com/koyo-miyamura/go-api-practice/model"
@@ -6,18 +6,18 @@ import (
 
 // UserModel is xxx
 type UserModel struct {
-	IndexMock func() *model.IndexResponse
+	IndexStub func() *model.IndexResponse
 }
 
-// Index return mock of UserModel
+// Index return stub of UserModel
 func (u *UserModel) Index() *model.IndexResponse {
-	return u.IndexMock()
+	return u.IndexStub()
 }
 
-// NewUserModel returns mock of UserModel
+// NewUserModel returns stub of UserModel
 func NewUserModel() *UserModel {
 	return &UserModel{
-		IndexMock: func() *model.IndexResponse {
+		IndexStub: func() *model.IndexResponse {
 			return nil
 		},
 	}
