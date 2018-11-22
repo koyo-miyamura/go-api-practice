@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
-	"github.com/koyo-miyamura/go-api-practice/model"
+	"github.com/koyo-miyamura/go-api-practice/schema"
 )
 
 func main() {
@@ -12,8 +12,8 @@ func main() {
 	}
 	defer db.Close()
 
-	db.Delete(model.User{})
-	users := []model.User{
+	db.Delete(schema.User{})
+	users := []schema.User{
 		{
 			Name: "hoge",
 		}, {
