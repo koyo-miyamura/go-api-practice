@@ -3,11 +3,12 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
 	"github.com/koyo-miyamura/go-api-practice/model"
-	"github.com/koyo-miyamura/go-api-practice/schema"
+	"github.com/koyo-miyamura/go-api-practice/model/mock"
 )
 
 func TestIndex(t *testing.T) {
@@ -17,22 +18,14 @@ func TestIndex(t *testing.T) {
 	}
 	defer util.TestDbClose(db)
 
-	users := []schema.User{
-		{
-			Name: "hoge",
-		},
-		{
-			Name: "fuga",
-		},
-	}
-	for _, user := range users {
-		db.Create(&user)
-	}
-
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	w := httptest.NewRecorder()
 
-	um := model.NewUserModel(db)
+	um := mock.NewUserModel()
+	want := &model.IndexResponse{}
+	um.IndexMock = func() *model.IndexResponse {
+		return want
+	}
 	h := NewUserHandler(um)
 	h.Index(w, req)
 
@@ -40,18 +33,10 @@ func TestIndex(t *testing.T) {
 		t.Fatalf("status code %v", w.Code)
 	}
 
-	res := &model.IndexResponse{}
-	util.JSONRead(w, res)
+	got := &model.IndexResponse{}
+	util.JSONRead(w, got)
 
-	want := users
-	got := res.Users
-
-	if len(got) != len(want) {
-		t.Fatalf("length got %v, want %v", len(got), len(want))
-	}
-	for i := 0; i < len(want); i++ {
-		if want[i].Name != got[i].Name {
-			t.Errorf("user name got %v, want %v", got[i].Name, want[i].Name)
-		}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("responce got %v, want %v", got, want)
 	}
 }

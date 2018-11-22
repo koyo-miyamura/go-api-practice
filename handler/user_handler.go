@@ -11,11 +11,11 @@ import (
 // UserHandler はどのmodelを使うかを保持します
 // 主にテスト用にmodelを切り替えるために使用します
 type UserHandler struct {
-	model *model.UserModel
+	model model.UserModel
 }
 
 // NewUserHandler はUserHandlerを生成して返します
-func NewUserHandler(m *model.UserModel) *UserHandler {
+func NewUserHandler(m model.UserModel) *UserHandler {
 	return &UserHandler{m}
 }
 

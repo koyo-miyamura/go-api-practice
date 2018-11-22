@@ -5,14 +5,19 @@ import (
 	"github.com/koyo-miyamura/go-api-practice/schema"
 )
 
-// UserModel is model struct of user
-type UserModel struct {
+// UserModel is interface of UserModel
+type UserModel interface {
+	Index() *IndexResponse
+}
+
+// userModel is model struct of user
+type userModel struct {
 	db *gorm.DB
 }
 
 // NewUserModel creates UserModel
-func NewUserModel(db *gorm.DB) *UserModel {
-	return &UserModel{db}
+func NewUserModel(db *gorm.DB) UserModel {
+	return &userModel{db}
 }
 
 // IndexResponse is response format for Index
@@ -21,8 +26,8 @@ type IndexResponse struct {
 }
 
 // Index returns all users
-func (u *UserModel) Index() IndexResponse {
+func (u *userModel) Index() *IndexResponse {
 	users := []*schema.User{}
 	u.db.Find(&users)
-	return IndexResponse{Users: users}
+	return &IndexResponse{Users: users}
 }
