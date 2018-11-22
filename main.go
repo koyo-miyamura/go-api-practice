@@ -6,6 +6,7 @@ import (
 
 	"github.com/koyo-miyamura/go-api-practice/handler"
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
+	"github.com/koyo-miyamura/go-api-practice/model"
 )
 
 func main() {
@@ -17,7 +18,8 @@ func main() {
 	}
 	defer db.Close()
 
-	userHandler := handler.NewUserHandler(db)
+	userModel := model.NewUserModel(db)
+	userHandler := handler.NewUserHandler(userModel)
 	userServer := userHandler.NewUserServer()
 	log.Fatal(http.ListenAndServe(":8080", userServer))
 }

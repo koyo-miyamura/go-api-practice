@@ -32,7 +32,8 @@ func TestIndex(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	w := httptest.NewRecorder()
 
-	h := NewUserHandler(db)
+	um := model.NewUserModel(db)
+	h := NewUserHandler(um)
 	h.Index(w, req)
 
 	if w.Code != http.StatusOK {

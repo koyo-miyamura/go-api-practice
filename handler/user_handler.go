@@ -5,19 +5,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koyo-miyamura/go-api-practice/model"
 )
 
-// UserHandler はどのDBを使うかを保持します
-// 主にテスト用にDBを切り替えるために使用します
+// UserHandler はどのmodelを使うかを保持します
+// 主にテスト用にmodelを切り替えるために使用します
 type UserHandler struct {
-	db *gorm.DB
+	model *model.UserModel
 }
 
 // NewUserHandler はUserHandlerを生成して返します
-func NewUserHandler(db *gorm.DB) *UserHandler {
-	return &UserHandler{db}
+func NewUserHandler(m *model.UserModel) *UserHandler {
+	return &UserHandler{m}
 }
 
 // NewUserServer create user model's handler
@@ -33,8 +32,7 @@ func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	um := model.NewUserModel(h.db)
-	res := um.Index()
+	res := h.model.Index()
 
 	result, err := json.Marshal(res)
 	if err != nil {
