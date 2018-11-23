@@ -9,6 +9,7 @@ import (
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
 	"github.com/koyo-miyamura/go-api-practice/model"
 	"github.com/koyo-miyamura/go-api-practice/model/stub"
+	"github.com/koyo-miyamura/go-api-practice/schema"
 )
 
 func TestIndex(t *testing.T) {
@@ -21,8 +22,18 @@ func TestIndex(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	w := httptest.NewRecorder()
 
+	want := &model.IndexResponse{
+		Users: []*schema.User{
+			{
+				Name: "hoge",
+			},
+			{
+				Name: "fuga",
+			},
+		},
+	}
+
 	um := stub.NewUserModel()
-	want := &model.IndexResponse{}
 	um.IndexStub = func() *model.IndexResponse {
 		return want
 	}
