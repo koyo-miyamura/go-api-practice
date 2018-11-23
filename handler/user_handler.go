@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/koyo-miyamura/go-api-practice/model"
 )
 
@@ -20,10 +21,10 @@ func NewUserHandler(m model.UserModel) *UserHandler {
 }
 
 // NewUserServer create user model's handler
-func (h *UserHandler) NewUserServer() *http.ServeMux {
-	server := http.NewServeMux()
-	server.HandleFunc("/users", h.Index)
-	return server
+func (h *UserHandler) NewUserServer() *mux.Router {
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/users", h.Index)
+	return router
 }
 
 // Index is user model's index
