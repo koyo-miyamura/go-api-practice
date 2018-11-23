@@ -39,3 +39,34 @@ func TestIndex(t *testing.T) {
 		}
 	}
 }
+
+func TestShow(t *testing.T) {
+	db, err := util.TestDbNew()
+	if err != nil {
+		t.Fatal(err, "DB接続できませんでした")
+	}
+	defer util.TestDbClose(db)
+
+	user := schema.User{
+		ID:   1,
+		Name: "hoge",
+	}
+	db.Create(&user)
+
+	um := NewUserModel(db)
+	res, err := um.Show(1)
+	if err != nil {
+		t.Errorf("error Show method %v", err)
+	}
+
+	got := res.User
+	want := user
+
+	if want.ID != got.ID {
+		t.Errorf("user ID got %v, want %v", got.ID, want.ID)
+	}
+
+	if want.Name != got.Name {
+		t.Errorf("user name got %v, want %v", got.Name, want.Name)
+	}
+}
