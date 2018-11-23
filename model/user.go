@@ -8,6 +8,7 @@ import (
 // UserModel is interface of UserModel
 type UserModel interface {
 	Index() *IndexResponse
+	Show(id uint64) *ShowResponse
 }
 
 // userModel is model struct of user
@@ -30,4 +31,16 @@ func (u *userModel) Index() *IndexResponse {
 	users := []*schema.User{}
 	u.db.Find(&users)
 	return &IndexResponse{Users: users}
+}
+
+// ShowResponse is response format for Show
+type ShowResponse struct {
+	User *schema.User `json:"user"`
+}
+
+// Show returns all users
+func (u *userModel) Show(id uint64) *ShowResponse {
+	user := &schema.User{}
+	u.db.Find(&user, id)
+	return &ShowResponse{User: user}
 }
