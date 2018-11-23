@@ -54,7 +54,10 @@ func TestShow(t *testing.T) {
 	db.Create(&user)
 
 	um := NewUserModel(db)
-	res := um.Show(1)
+	res, err := um.Show(1)
+	if err != nil {
+		t.Errorf("error Show method %v", err)
+	}
 
 	got := res.User
 	want := user

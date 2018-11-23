@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -60,43 +61,51 @@ func TestShow(t *testing.T) {
 	}
 	defer util.TestDbClose(db)
 
-	req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
-	w := httptest.NewRecorder()
+	t.Run("Success", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
+		w := httptest.NewRecorder()
 
-	want := &model.ShowResponse{
-		User: &schema.User{
-			ID:   1,
-			Name: "hoge",
-		},
-	}
-
-	um := stub.NewUserModel()
-	um.ShowStub = func(id uint64) *model.ShowResponse {
-		if id == 1 {
-			return want
+		want := &model.ShowResponse{
+			User: &schema.User{
+				ID:   1,
+				Name: "hoge",
+			},
 		}
-		return nil
-	}
-	h := NewUserHandler(um)
-	r := h.NewUserServer()
-	r.ServeHTTP(w, req) // gorilla/muxがパラメータ取り出すにはこれを経由させる必要がある
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("status code %v", w.Code)
-	}
+		um := stub.NewUserModel()
+		um.ShowStub = func(id uint64) (*model.ShowResponse, error) {
+			if id == 1 {
+				return want, nil
+			}
+			return nil, errors.New("can't find user")
+		}
+		h := NewUserHandler(um)
+		r := h.NewUserServer()
+		r.ServeHTTP(w, req) // gorilla/muxがパラメータ取り出すにはこれを経由させる必要がある
 
-	got := &model.ShowResponse{}
-	util.JSONRead(w, got)
+		if w.Code != http.StatusOK {
+			t.Fatalf("status code %v", w.Code)
+		}
 
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("responce got %v, want %v", got, want)
-	}
+		got := &model.ShowResponse{}
+		util.JSONRead(w, got)
 
-	// // Fail
-	// req = httptest.NewRequest(http.MethodGet, "/users/10000", nil)
-	// h.Show(w, req)
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("responce got %v, want %v", got, want)
+		}
+	})
 
-	// if w.Code != http.StatusNotFound {
-	// 	t.Fatalf("status code %v", w.Code)
-	// }
+	t.Run("Fail", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/100000000", nil)
+		w := httptest.NewRecorder()
+
+		um := stub.NewUserModel()
+		h := NewUserHandler(um)
+		r := h.NewUserServer()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("status code %v", w.Code)
+		}
+	})
 }

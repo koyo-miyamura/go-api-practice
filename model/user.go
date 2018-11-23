@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/jinzhu/gorm"
 	"github.com/koyo-miyamura/go-api-practice/schema"
 )
@@ -8,7 +10,7 @@ import (
 // UserModel is interface of UserModel
 type UserModel interface {
 	Index() *IndexResponse
-	Show(id uint64) *ShowResponse
+	Show(id uint64) (*ShowResponse, error)
 }
 
 // userModel is model struct of user
@@ -39,8 +41,10 @@ type ShowResponse struct {
 }
 
 // Show returns all users
-func (u *userModel) Show(id uint64) *ShowResponse {
+func (u *userModel) Show(id uint64) (*ShowResponse, error) {
 	user := &schema.User{}
-	u.db.Find(&user, id)
-	return &ShowResponse{User: user}
+	if err := u.db.Find(&user, id).Error; err != nil {
+		return nil, errors.New("error find user")
+	}
+	return &ShowResponse{User: user}, nil
 }

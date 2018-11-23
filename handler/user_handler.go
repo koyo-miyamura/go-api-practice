@@ -61,7 +61,12 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	res := h.model.Show(id)
+	res, err := h.model.Show(id)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	result, err := json.Marshal(res)
 	if err != nil {
