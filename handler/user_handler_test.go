@@ -38,7 +38,8 @@ func TestIndex(t *testing.T) {
 		return want
 	}
 	h := NewUserHandler(um)
-	h.Index(w, req)
+	r := h.NewUserServer()
+	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("status code %v", w.Code)
