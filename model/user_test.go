@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
@@ -14,13 +15,9 @@ func TestIndex(t *testing.T) {
 	}
 	defer util.TestDbClose(db)
 
-	users := []schema.User{
-		{
-			Name: "hoge",
-		},
-		{
-			Name: "fuga",
-		},
+	users := []schema.User{}
+	for i := 0; i < 10; i++ {
+		users = append(users, schema.User{Name: fmt.Sprintf("hoge%d", i)})
 	}
 	for _, user := range users {
 		db.Create(&user)
