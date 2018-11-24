@@ -11,6 +11,7 @@ import (
 type UserModel interface {
 	Index() *IndexResponse
 	Show(id uint64) (*ShowResponse, error)
+	Create(req *CreateRequest) (*CreateResponse, error)
 }
 
 // userModel is model struct of user
@@ -47,4 +48,26 @@ func (u *userModel) Show(id uint64) (*ShowResponse, error) {
 		return nil, errors.New("error find user")
 	}
 	return &ShowResponse{User: user}, nil
+}
+
+// CreateRequest is request format for Create
+type CreateRequest struct {
+	User *schema.User `json:"user"`
+}
+
+// CreateResponse is response format for Create
+type CreateResponse struct {
+	User *schema.User `json:"user"`
+}
+
+// Create creates new user
+func (u *userModel) Create(req *CreateRequest) (*CreateResponse, error) {
+	user := req.User
+	if err := u.db.Create(&user).Error; err != nil {
+		return nil, errors.New("error create user")
+	}
+	res := &CreateResponse{
+		User: user,
+	}
+	return res, nil
 }

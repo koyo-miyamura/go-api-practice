@@ -70,3 +70,34 @@ func TestShow(t *testing.T) {
 		t.Errorf("user name got %v, want %v", got.Name, want.Name)
 	}
 }
+
+func TestCreate(t *testing.T) {
+	db, err := util.TestDbNew()
+	if err != nil {
+		t.Fatal(err, "DB接続できませんでした")
+	}
+	defer util.TestDbClose(db)
+
+	user := &schema.User{
+		Name: "hoge",
+	}
+
+	um := NewUserModel(db)
+	req := &CreateRequest{
+		User: user,
+	}
+	res, err := um.Create(req)
+	if err != nil {
+		t.Errorf("error Create method %v", err)
+	}
+
+	got := schema.User{}
+	if err := db.Find(&got, res.User.ID).Error; err != nil {
+		t.Fatalf("can't Find created user %v", res)
+	}
+	want := user
+
+	if want.Name != got.Name {
+		t.Errorf("user name got %v, want %v", got.Name, want.Name)
+	}
+}
