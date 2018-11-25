@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/koyo-miyamura/go-api-practice/model"
+	"github.com/koyo-miyamura/go-api-practice/schema"
 	"github.com/pkg/errors"
 )
 
@@ -82,34 +83,50 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 
 // Create is user model's create
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	log.Printf("/users POST handled")
+
+	w.Header().Set("Content-Type", "application/json")
+
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err, "ioutil.ReadAllに失敗しました")
+		log.Println(err, "ioutil.ReadAllに失敗しました")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	req := &model.CreateRequest{}
 	if err := json.Unmarshal(buf, req); err != nil {
-		log.Fatal(err, "Unmarshalに失敗しました")
+		log.Println(err, "Unmarshalに失敗しました")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user := &schema.User{
+		Name: req.Name,
+	}
+
+	if err := h.model.Validate(user); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("/users POST handled")
-	w.Header().Set("Content-Type", "application/json")
-
-	res, err := h.model.Create(req)
+	res, err := h.model.Create(user)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	result, err := json.Marshal(res)
 	if err != nil {
 		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	_, err = w.Write(result)
 	if err != nil {
 		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }

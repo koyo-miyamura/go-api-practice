@@ -98,44 +98,91 @@ func TestShow(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
-		validUser := &schema.User{
-			Name: "hoge",
-		}
-		input := &model.CreateRequest{
-			Name: validUser.Name,
-		}
-		want := &model.CreateResponse{
-			User: validUser,
-		}
-		um := stub.NewUserModel()
-		um.CreateStub = func(req *model.CreateRequest) (*model.CreateResponse, error) {
-			res := &model.CreateResponse{
-				User: validUser,
+	user := &schema.User{
+		Name: "hoge",
+	}
+	req := &model.CreateRequest{
+		Name: user.Name,
+	}
+	input, err := json.Marshal(req)
+	if err != nil {
+		t.Fatal("error Marshal test input")
+	}
+	want := &model.CreateResponse{
+		User: user,
+	}
+
+	type Test struct {
+		Title      string
+		Input      []byte
+		Create     bool
+		Validate   bool
+		StatusCode int
+	}
+	tests := []Test{
+		{
+			Title:      "Success",
+			Input:      input,
+			Create:     true,
+			Validate:   true,
+			StatusCode: http.StatusOK,
+		},
+		{
+			Title:      "Validate false",
+			Input:      input,
+			Create:     true,
+			Validate:   false,
+			StatusCode: http.StatusBadRequest,
+		},
+		{
+			Title:      "Create false",
+			Input:      input,
+			Create:     false,
+			Validate:   true,
+			StatusCode: http.StatusInternalServerError,
+		},
+		{
+			Title:      "nil input",
+			Input:      nil,
+			StatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Title, func(t *testing.T) {
+			um := stub.NewUserModel()
+			um.CreateStub = func(user *schema.User) (*model.CreateResponse, error) {
+				if test.Create {
+					return want, nil
+				}
+				return nil, errors.New("create error")
 			}
-			return res, nil
-		}
+			um.ValidateStub = func(user *schema.User) error {
+				if test.Validate {
+					return nil
+				}
+				return errors.New("validate error")
+			}
 
-		h := NewUserHandler(um)
-		r := h.NewUserServer()
+			h := NewUserHandler(um)
+			r := h.NewUserServer()
 
-		jsonInput, err := json.Marshal(input)
-		if err != nil {
-			t.Fatal("error Marshal test input")
-		}
-		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(jsonInput))
-		w := httptest.NewRecorder()
-		r.ServeHTTP(w, req)
+			req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(test.Input))
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
 
-		if w.Code != http.StatusOK {
-			t.Fatalf("status code %v", w.Code)
-		}
+			if w.Code != test.StatusCode {
+				t.Errorf("status code got %v, want %v", w.Code, test.StatusCode)
+			}
 
-		got := &model.CreateResponse{}
-		util.JSONRead(w, got)
+			if test.Create && test.Validate {
+				got := &model.CreateResponse{}
+				util.JSONRead(w, got)
 
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("responce got %v, want %v", got, want)
-		}
-	})
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("responce got %v, want %v", got, want)
+				}
+			}
+		})
+	}
 }
