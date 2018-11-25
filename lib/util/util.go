@@ -23,7 +23,7 @@ var (
 func DbOpen() (*gorm.DB, error) {
 	db, err := gorm.Open("sqlite3", home+"/sqlite3/database.db")
 	if err != nil {
-		return nil, errors.Wrap(err, "dbに接続できませんでした")
+		return nil, errors.Wrapf(err, "dbに接続できませんでした home:%v", home)
 	}
 	db.LogMode(true)
 	return db, nil
@@ -31,10 +31,9 @@ func DbOpen() (*gorm.DB, error) {
 
 // TestDbNew はテスト用のDBを準備します
 func TestDbNew() (*gorm.DB, error) {
-
 	db, err := gorm.Open("sqlite3", home+"/sqlite3/database_test.db")
 	if err != nil {
-		return nil, errors.Wrap(err, "dbに接続できませんでした")
+		return nil, errors.Wrapf(err, "dbに接続できませんでした home:%v", home)
 	}
 	db.LogMode(true)
 

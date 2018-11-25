@@ -7,6 +7,8 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.10
+    environment:
+      TZ: /usr/share/zoneinfo/Asia/Tokyo
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -17,9 +19,12 @@ jobs:
     #### expecting it in the form of
     ####   /go/src/github.com/circleci/go-tool
     ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/koyo-miyamura/go-api-practice
     steps:
       - checkout
 
       # specify any bash command here prefixed with `run: `
+      - run: echo 'export GOPATH=/go' >> $BASH_ENV
+      - run: source /home/circleci/.bashrc
+      - run: dep ensure
       - run: make test
