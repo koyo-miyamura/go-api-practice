@@ -14,15 +14,6 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	db, err := util.TestDbNew()
-	if err != nil {
-		t.Fatal(err, "DB接続できませんでした")
-	}
-	defer util.TestDbClose(db)
-
-	req := httptest.NewRequest(http.MethodGet, "/users", nil)
-	w := httptest.NewRecorder()
-
 	want := &model.IndexResponse{
 		Users: []*schema.User{
 			{
@@ -38,8 +29,11 @@ func TestIndex(t *testing.T) {
 	um.IndexStub = func() *model.IndexResponse {
 		return want
 	}
+
 	h := NewUserHandler(um)
 	r := h.NewUserServer()
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
@@ -55,32 +49,27 @@ func TestIndex(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	db, err := util.TestDbNew()
-	if err != nil {
-		t.Fatal(err, "DB接続できませんでした")
+	want := &model.ShowResponse{
+		User: &schema.User{
+			ID:   1,
+			Name: "hoge",
+		},
 	}
-	defer util.TestDbClose(db)
+
+	um := stub.NewUserModel()
+	um.ShowStub = func(id uint64) (*model.ShowResponse, error) {
+		if id == 1 {
+			return want, nil
+		}
+		return nil, errors.New("can't find user")
+	}
+
+	h := NewUserHandler(um)
+	r := h.NewUserServer()
 
 	t.Run("Success", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
 		w := httptest.NewRecorder()
-
-		want := &model.ShowResponse{
-			User: &schema.User{
-				ID:   1,
-				Name: "hoge",
-			},
-		}
-
-		um := stub.NewUserModel()
-		um.ShowStub = func(id uint64) (*model.ShowResponse, error) {
-			if id == 1 {
-				return want, nil
-			}
-			return nil, errors.New("can't find user")
-		}
-		h := NewUserHandler(um)
-		r := h.NewUserServer()
 		r.ServeHTTP(w, req) // gorilla/muxがパラメータ取り出すにはこれを経由させる必要がある
 
 		if w.Code != http.StatusOK {
@@ -96,12 +85,8 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Fail", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/users/100000000", nil)
+		req := httptest.NewRequest(http.MethodGet, "/users/2", nil)
 		w := httptest.NewRecorder()
-
-		um := stub.NewUserModel()
-		h := NewUserHandler(um)
-		r := h.NewUserServer()
 		r.ServeHTTP(w, req)
 
 		if w.Code != http.StatusNotFound {
