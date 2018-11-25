@@ -52,7 +52,7 @@ func (u *userModel) Show(id uint64) (*ShowResponse, error) {
 
 // CreateRequest is request format for Create
 type CreateRequest struct {
-	User *schema.User `json:"user"`
+	Name string `json:"name"`
 }
 
 // CreateResponse is response format for Create
@@ -62,8 +62,13 @@ type CreateResponse struct {
 
 // Create creates new user
 func (u *userModel) Create(req *CreateRequest) (*CreateResponse, error) {
-	user := req.User
-	if err := u.db.Create(&user).Error; err != nil {
+	if req == nil {
+		return nil, errors.New("nil can't create")
+	}
+	user := &schema.User{
+		Name: req.Name,
+	}
+	if err := u.db.Create(user).Error; err != nil {
 		return nil, err
 	}
 	res := &CreateResponse{

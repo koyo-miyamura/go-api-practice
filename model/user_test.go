@@ -84,7 +84,7 @@ func TestCreate(t *testing.T) {
 
 	um := NewUserModel(db)
 	req := &CreateRequest{
-		User: user,
+		Name: user.Name,
 	}
 	res, err := um.Create(req)
 	if err != nil {
