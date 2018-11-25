@@ -124,6 +124,10 @@ func TestValidateUser(t *testing.T) {
 	}
 	defer util.TestDbClose(db)
 
+	existUser := schema.User{
+		Name: "duplicated",
+	}
+	db.Create(&existUser)
 	um := NewUserModel(db)
 
 	type Test struct {
@@ -140,14 +144,21 @@ func TestValidateUser(t *testing.T) {
 			Want: true,
 		},
 		{
-			Title: "User has no contents",
+			Title: "User having no contents",
 			User:  &schema.User{},
 			Want:  false,
 		},
 		{
-			Title: "Name is blank",
+			Title: "Blank Name",
 			User: &schema.User{
 				Name: "",
+			},
+			Want: false,
+		},
+		{
+			Title: "Duplicated name",
+			User: &schema.User{
+				Name: existUser.Name,
 			},
 			Want: false,
 		},

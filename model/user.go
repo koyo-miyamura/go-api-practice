@@ -62,6 +62,7 @@ type CreateResponse struct {
 }
 
 // Create creates new user
+// Note: This method doesn't validate
 func (u *userModel) Create(user *schema.User) (*CreateResponse, error) {
 	if user == nil {
 		return nil, errors.New("nil can't create")
@@ -80,5 +81,12 @@ func (u *userModel) Validate(user *schema.User) error {
 	if len(user.Name) == 0 {
 		return errors.New("Name is required")
 	}
+
+	var count int
+	u.db.Model(&schema.User{}).Where("name == ?", user.Name).Count(&count)
+	if count > 0 {
+		return errors.New("Name must be unique")
+	}
+
 	return nil
 }
