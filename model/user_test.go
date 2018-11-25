@@ -52,23 +52,32 @@ func TestShow(t *testing.T) {
 		Name: "hoge",
 	}
 	db.Create(&user)
-
 	um := NewUserModel(db)
-	res, err := um.Show(1)
-	if err != nil {
-		t.Errorf("error Show method %v", err)
-	}
 
-	got := res.User
-	want := user
+	t.Run("Success", func(t *testing.T) {
+		res, err := um.Show(1)
+		if err != nil {
+			t.Errorf("error Show method %v", err)
+		}
 
-	if want.ID != got.ID {
-		t.Errorf("user ID got %v, want %v", got.ID, want.ID)
-	}
+		got := res.User
+		want := user
 
-	if want.Name != got.Name {
-		t.Errorf("user name got %v, want %v", got.Name, want.Name)
-	}
+		if want.ID != got.ID {
+			t.Errorf("user ID got %v, want %v", got.ID, want.ID)
+		}
+
+		if want.Name != got.Name {
+			t.Errorf("user name got %v, want %v", got.Name, want.Name)
+		}
+	})
+
+	t.Run("Fail", func(t *testing.T) {
+		res, _ := um.Show(10000000)
+		if res != nil {
+			t.Errorf("want response is nil, but got %#v", res)
+		}
+	})
 }
 
 func TestCreate(t *testing.T) {
