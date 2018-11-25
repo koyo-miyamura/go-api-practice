@@ -87,26 +87,77 @@ func TestCreate(t *testing.T) {
 	}
 	defer util.TestDbClose(db)
 
-	user := &schema.User{
-		Name: "hoge",
+	um := NewUserModel(db)
+
+	t.Run("Success", func(t *testing.T) {
+		user := &schema.User{
+			Name: "hoge",
+		}
+		res, err := um.Create(user)
+		if err != nil {
+			t.Errorf("error Create method %v", err)
+		}
+
+		got := schema.User{}
+		if err := db.Find(&got, res.User.ID).Error; err != nil {
+			t.Fatalf("can't Find created user %v", res)
+		}
+		want := user
+
+		if want.Name != got.Name {
+			t.Errorf("user name got %v, want %v", got.Name, want.Name)
+		}
+	})
+
+	t.Run("Fail", func(t *testing.T) {
+		res, err := um.Create(&schema.User{})
+		if err != nil {
+			t.Errorf("nil can't input, but got %#v", res)
+		}
+	})
+}
+
+func TestValidateUser(t *testing.T) {
+	db, err := util.TestDbNew()
+	if err != nil {
+		t.Fatal(err, "DB接続できませんでした")
 	}
+	defer util.TestDbClose(db)
 
 	um := NewUserModel(db)
-	req := &CreateRequest{
-		Name: user.Name,
+
+	type Test struct {
+		Title string
+		User  *schema.User
+		Want  bool
 	}
-	res, err := um.Create(req)
-	if err != nil {
-		t.Errorf("error Create method %v", err)
+	tests := []Test{
+		{
+			Title: "Valid User",
+			User: &schema.User{
+				Name: "hoge",
+			},
+			Want: true,
+		},
+		{
+			Title: "User has no contents",
+			User:  &schema.User{},
+			Want:  false,
+		},
+		{
+			Title: "Name is blank",
+			User: &schema.User{
+				Name: "",
+			},
+			Want: false,
+		},
 	}
 
-	got := schema.User{}
-	if err := db.Find(&got, res.User.ID).Error; err != nil {
-		t.Fatalf("can't Find created user %v", res)
-	}
-	want := user
-
-	if want.Name != got.Name {
-		t.Errorf("user name got %v, want %v", got.Name, want.Name)
+	for _, test := range tests {
+		t.Run(test.Title, func(t *testing.T) {
+			if err := um.Validate(test.User); (err != nil) == test.Want {
+				t.Fatalf("%s must be %v", test.Title, test.Want)
+			}
+		})
 	}
 }

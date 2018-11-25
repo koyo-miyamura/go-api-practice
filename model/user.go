@@ -11,7 +11,8 @@ import (
 type UserModel interface {
 	Index() *IndexResponse
 	Show(id uint64) (*ShowResponse, error)
-	Create(req *CreateRequest) (*CreateResponse, error)
+	Create(user *schema.User) (*CreateResponse, error)
+	Validate(user *schema.User) error
 }
 
 // userModel is model struct of user
@@ -61,12 +62,9 @@ type CreateResponse struct {
 }
 
 // Create creates new user
-func (u *userModel) Create(req *CreateRequest) (*CreateResponse, error) {
-	if req == nil {
+func (u *userModel) Create(user *schema.User) (*CreateResponse, error) {
+	if user == nil {
 		return nil, errors.New("nil can't create")
-	}
-	user := &schema.User{
-		Name: req.Name,
 	}
 	if err := u.db.Create(user).Error; err != nil {
 		return nil, err
@@ -75,4 +73,12 @@ func (u *userModel) Create(req *CreateRequest) (*CreateResponse, error) {
 		User: user,
 	}
 	return res, nil
+}
+
+// Validate validate User struct
+func (u *userModel) Validate(user *schema.User) error {
+	if len(user.Name) == 0 {
+		return errors.New("Name is required")
+	}
+	return nil
 }
