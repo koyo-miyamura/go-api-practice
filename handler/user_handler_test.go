@@ -79,7 +79,9 @@ func TestShow(t *testing.T) {
 		}
 
 		got := &model.ShowResponse{}
-		util.JSONRead(w, got)
+		if err := util.JSONRead(w, got); err != nil {
+			t.Fatal(err)
+		}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("responce got %v, want %v", got, want)
@@ -101,10 +103,10 @@ func TestCreate(t *testing.T) {
 	user := &schema.User{
 		Name: "hoge",
 	}
-	req := &model.CreateRequest{
+	request := &model.CreateRequest{
 		Name: user.Name,
 	}
-	input, err := json.Marshal(req)
+	input, err := json.Marshal(request)
 	if err != nil {
 		t.Fatal("error Marshal test input")
 	}
@@ -144,7 +146,7 @@ func TestCreate(t *testing.T) {
 		{
 			Title:      "nil input",
 			Input:      nil,
-			StatusCode: http.StatusInternalServerError,
+			StatusCode: http.StatusBadRequest,
 		},
 	}
 
