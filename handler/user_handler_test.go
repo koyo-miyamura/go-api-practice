@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -91,6 +93,49 @@ func TestShow(t *testing.T) {
 
 		if w.Code != http.StatusNotFound {
 			t.Fatalf("status code %v", w.Code)
+		}
+	})
+}
+
+func TestCreate(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		validUser := &schema.User{
+			Name: "hoge",
+		}
+		input := &model.CreateRequest{
+			Name: validUser.Name,
+		}
+		want := &model.CreateResponse{
+			User: validUser,
+		}
+		um := stub.NewUserModel()
+		um.CreateStub = func(req *model.CreateRequest) (*model.CreateResponse, error) {
+			res := &model.CreateResponse{
+				User: validUser,
+			}
+			return res, nil
+		}
+
+		h := NewUserHandler(um)
+		r := h.NewUserServer()
+
+		jsonInput, err := json.Marshal(input)
+		if err != nil {
+			t.Fatal("error Marshal test input")
+		}
+		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(jsonInput))
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("status code %v", w.Code)
+		}
+
+		got := &model.CreateResponse{}
+		util.JSONRead(w, got)
+
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("responce got %v, want %v", got, want)
 		}
 	})
 }

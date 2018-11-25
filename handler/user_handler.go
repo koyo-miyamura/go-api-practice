@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -27,6 +28,7 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/users", h.Index).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Show).Methods("GET")
+	router.HandleFunc("/users", h.Create).Methods("POST")
 	return router
 }
 
@@ -65,6 +67,40 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	result, err := json.Marshal(res)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	_, err = w.Write(result)
+	if err != nil {
+		log.Println(err.Error())
+	}
+}
+
+// Create is user model's create
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err, "ioutil.ReadAllに失敗しました")
+		return
+	}
+
+	req := &model.CreateRequest{}
+	if err := json.Unmarshal(buf, req); err != nil {
+		log.Fatal(err, "Unmarshalに失敗しました")
+		return
+	}
+
+	log.Printf("/users POST handled")
+	w.Header().Set("Content-Type", "application/json")
+
+	res, err := h.model.Create(req)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
