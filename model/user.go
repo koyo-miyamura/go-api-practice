@@ -11,6 +11,8 @@ import (
 type UserModel interface {
 	Index() *IndexResponse
 	Show(id uint64) (*ShowResponse, error)
+	Create(user *schema.User) (*CreateResponse, error)
+	Validate(user *schema.User) error
 }
 
 // userModel is model struct of user
@@ -47,4 +49,44 @@ func (u *userModel) Show(id uint64) (*ShowResponse, error) {
 		return nil, errors.New("error find user")
 	}
 	return &ShowResponse{User: user}, nil
+}
+
+// CreateRequest is request format for Create
+type CreateRequest struct {
+	Name string `json:"name"`
+}
+
+// CreateResponse is response format for Create
+type CreateResponse struct {
+	User *schema.User `json:"user"`
+}
+
+// Create creates new user
+// Note: This method doesn't validate
+func (u *userModel) Create(user *schema.User) (*CreateResponse, error) {
+	if user == nil {
+		return nil, errors.New("nil can't create")
+	}
+	if err := u.db.Create(user).Error; err != nil {
+		return nil, err
+	}
+	res := &CreateResponse{
+		User: user,
+	}
+	return res, nil
+}
+
+// Validate validate User struct
+func (u *userModel) Validate(user *schema.User) error {
+	if len(user.Name) == 0 {
+		return errors.New("Name is required")
+	}
+
+	var count int
+	u.db.Model(&schema.User{}).Where("name == ?", user.Name).Count(&count)
+	if count > 0 {
+		return errors.New("Name must be unique")
+	}
+
+	return nil
 }

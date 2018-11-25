@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -14,15 +16,6 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	db, err := util.TestDbNew()
-	if err != nil {
-		t.Fatal(err, "DB接続できませんでした")
-	}
-	defer util.TestDbClose(db)
-
-	req := httptest.NewRequest(http.MethodGet, "/users", nil)
-	w := httptest.NewRecorder()
-
 	want := &model.IndexResponse{
 		Users: []*schema.User{
 			{
@@ -38,8 +31,11 @@ func TestIndex(t *testing.T) {
 	um.IndexStub = func() *model.IndexResponse {
 		return want
 	}
+
 	h := NewUserHandler(um)
 	r := h.NewUserServer()
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
@@ -55,32 +51,27 @@ func TestIndex(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	db, err := util.TestDbNew()
-	if err != nil {
-		t.Fatal(err, "DB接続できませんでした")
+	want := &model.ShowResponse{
+		User: &schema.User{
+			ID:   1,
+			Name: "hoge",
+		},
 	}
-	defer util.TestDbClose(db)
+
+	um := stub.NewUserModel()
+	um.ShowStub = func(id uint64) (*model.ShowResponse, error) {
+		if id == 1 {
+			return want, nil
+		}
+		return nil, errors.New("can't find user")
+	}
+
+	h := NewUserHandler(um)
+	r := h.NewUserServer()
 
 	t.Run("Success", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
 		w := httptest.NewRecorder()
-
-		want := &model.ShowResponse{
-			User: &schema.User{
-				ID:   1,
-				Name: "hoge",
-			},
-		}
-
-		um := stub.NewUserModel()
-		um.ShowStub = func(id uint64) (*model.ShowResponse, error) {
-			if id == 1 {
-				return want, nil
-			}
-			return nil, errors.New("can't find user")
-		}
-		h := NewUserHandler(um)
-		r := h.NewUserServer()
 		r.ServeHTTP(w, req) // gorilla/muxがパラメータ取り出すにはこれを経由させる必要がある
 
 		if w.Code != http.StatusOK {
@@ -88,7 +79,9 @@ func TestShow(t *testing.T) {
 		}
 
 		got := &model.ShowResponse{}
-		util.JSONRead(w, got)
+		if err := util.JSONRead(w, got); err != nil {
+			t.Fatal(err)
+		}
 
 		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("responce got %v, want %v", got, want)
@@ -96,16 +89,93 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Fail", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/users/100000000", nil)
+		req := httptest.NewRequest(http.MethodGet, "/users/2", nil)
 		w := httptest.NewRecorder()
-
-		um := stub.NewUserModel()
-		h := NewUserHandler(um)
-		r := h.NewUserServer()
 		r.ServeHTTP(w, req)
 
 		if w.Code != http.StatusNotFound {
 			t.Fatalf("status code %v", w.Code)
 		}
 	})
+}
+
+func TestCreate(t *testing.T) {
+	user := &schema.User{
+		Name: "hoge",
+	}
+	request := &model.CreateRequest{
+		Name: user.Name,
+	}
+	want := &model.CreateResponse{
+		User: user,
+	}
+
+	type Test struct {
+		Title      string
+		Create     bool
+		Validate   bool
+		StatusCode int
+	}
+	tests := []Test{
+		{
+			Title:      "Success",
+			Create:     true,
+			Validate:   true,
+			StatusCode: http.StatusOK,
+		},
+		{
+			Title:      "Validate false",
+			Create:     true,
+			Validate:   false,
+			StatusCode: http.StatusBadRequest,
+		},
+		{
+			Title:      "Create false",
+			Create:     false,
+			Validate:   true,
+			StatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Title, func(t *testing.T) {
+			um := stub.NewUserModel()
+			um.CreateStub = func(user *schema.User) (*model.CreateResponse, error) {
+				if test.Create {
+					return want, nil
+				}
+				return nil, errors.New("create error")
+			}
+			um.ValidateStub = func(user *schema.User) error {
+				if test.Validate {
+					return nil
+				}
+				return errors.New("validate error")
+			}
+
+			h := NewUserHandler(um)
+			r := h.NewUserServer()
+
+			input, err := json.Marshal(request)
+			if err != nil {
+				t.Fatal("error Marshal test input")
+			}
+			req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(input))
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != test.StatusCode {
+				t.Errorf("status code got %v, want %v", w.Code, test.StatusCode)
+			}
+
+			if test.Create && test.Validate {
+				got := &model.CreateResponse{}
+				util.JSONRead(w, got)
+
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("responce got %v, want %v", got, want)
+				}
+			}
+		})
+	}
 }

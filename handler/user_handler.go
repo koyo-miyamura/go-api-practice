@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/koyo-miyamura/go-api-practice/lib/util"
 	"github.com/koyo-miyamura/go-api-practice/model"
+	"github.com/koyo-miyamura/go-api-practice/schema"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +28,7 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/users", h.Index).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Show).Methods("GET")
+	router.HandleFunc("/users", h.Create).Methods("POST")
 	return router
 }
 
@@ -34,17 +36,11 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 	log.Println("/users handled")
 
-	w.Header().Set("Content-Type", "application/json")
-
 	res := h.model.Index()
 
-	result, err := json.Marshal(res)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	_, err = w.Write(result)
-	if err != nil {
-		log.Println(err.Error())
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -59,8 +55,6 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("/users/%d handled", id)
 
-	w.Header().Set("Content-Type", "application/json")
-
 	res, err := h.model.Show(id)
 	if err != nil {
 		log.Println(err)
@@ -68,12 +62,42 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := json.Marshal(res)
-	if err != nil {
-		log.Println(err.Error())
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-	_, err = w.Write(result)
+}
+
+// Create is user model's create
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	log.Printf("/users POST handled")
+
+	req := &model.CreateRequest{}
+	if err := util.ScanRequest(r, req); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user := &schema.User{
+		Name: req.Name,
+	}
+
+	if err := h.model.Validate(user); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.model.Create(user)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

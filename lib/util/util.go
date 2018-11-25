@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -63,6 +64,37 @@ func JSONRead(w *httptest.ResponseRecorder, res interface{}) error {
 
 	if err := json.Unmarshal(body, res); err != nil {
 		return errors.Wrap(err, "Unmarshalに失敗しました")
+	}
+
+	return nil
+}
+
+// JSONWrite は与えられた形式でJsonレスポンスを返します
+func JSONWrite(w http.ResponseWriter, response interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ScanRequest はJsonリクエストからrequestの方に合わせてUnmarshalします
+func ScanRequest(r *http.Request, request interface{}) error {
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(buf, request); err != nil {
+		return err
 	}
 
 	return nil
