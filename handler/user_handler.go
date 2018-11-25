@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/koyo-miyamura/go-api-practice/lib/util"
 	"github.com/koyo-miyamura/go-api-practice/model"
 	"github.com/koyo-miyamura/go-api-practice/schema"
 	"github.com/pkg/errors"
@@ -37,17 +36,11 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 	log.Println("/users handled")
 
-	w.Header().Set("Content-Type", "application/json")
-
 	res := h.model.Index()
 
-	result, err := json.Marshal(res)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	_, err = w.Write(result)
-	if err != nil {
-		log.Println(err.Error())
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -62,8 +55,6 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("/users/%d handled", id)
 
-	w.Header().Set("Content-Type", "application/json")
-
 	res, err := h.model.Show(id)
 	if err != nil {
 		log.Println(err)
@@ -71,13 +62,9 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := json.Marshal(res)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	_, err = w.Write(result)
-	if err != nil {
-		log.Println(err.Error())
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -85,21 +72,13 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/users POST handled")
 
-	w.Header().Set("Content-Type", "application/json")
-
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err, "ioutil.ReadAllに失敗しました")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	req := &model.CreateRequest{}
-	if err := json.Unmarshal(buf, req); err != nil {
-		log.Println(err, "Unmarshalに失敗しました")
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := util.ScanRequest(r, req); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	user := &schema.User{
 		Name: req.Name,
 	}
@@ -117,16 +96,8 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := json.Marshal(res)
-	if err != nil {
-		log.Println(err.Error())
+	if err := util.JSONWrite(w, res); err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	_, err = w.Write(result)
-	if err != nil {
-		log.Println(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 }
