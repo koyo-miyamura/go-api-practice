@@ -64,7 +64,7 @@ type CreateResponse struct {
 func (u *userModel) Create(req *CreateRequest) (*CreateResponse, error) {
 	user := req.User
 	if err := u.db.Create(&user).Error; err != nil {
-		return nil, errors.New("error create user")
+		return nil, err
 	}
 	res := &CreateResponse{
 		User: user,
