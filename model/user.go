@@ -12,6 +12,7 @@ type UserModel interface {
 	Index() *IndexResponse
 	Show(id uint64) (*ShowResponse, error)
 	Create(user *schema.User) (*CreateResponse, error)
+	Delete(id uint64) error
 	Validate(user *schema.User) error
 }
 
@@ -74,6 +75,16 @@ func (u *userModel) Create(user *schema.User) (*CreateResponse, error) {
 		User: user,
 	}
 	return res, nil
+}
+
+func (u *userModel) Delete(id uint64) error {
+	deleteUser := &schema.User{
+		ID: id,
+	}
+	if err := u.db.Delete(&deleteUser).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // Validate validate User struct
