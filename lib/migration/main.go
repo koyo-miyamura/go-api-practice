@@ -13,5 +13,4 @@ func main() {
 	defer db.Close()
 
 	db.AutoMigrate(&schema.User{})
-	db.Model(&schema.User{}).AddIndex("idx_user_name", "name")
 }
