@@ -69,8 +69,10 @@ func JSONRead(w *httptest.ResponseRecorder, res interface{}) error {
 }
 
 // JSONWrite は与えられた形式でJsonレスポンスを返します
-func JSONWrite(w http.ResponseWriter, response interface{}) error {
+func JSONWrite(w http.ResponseWriter, response interface{}, statusCode int) error {
+	// w.Header().Set(), w.WriteHeader, w.Write の順に書き込まないと動作しないので注意
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {

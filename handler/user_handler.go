@@ -29,6 +29,7 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router.HandleFunc("/users", h.Index).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Show).Methods("GET")
 	router.HandleFunc("/users", h.Create).Methods("POST")
+	router.HandleFunc("/users/{id:[0-9]+}", h.Delete).Methods("DELETE")
 	return router
 }
 
@@ -38,7 +39,7 @@ func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	res := h.model.Index()
 
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusOK); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -50,7 +51,9 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 	idStr := vars["id"]
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		log.Panicln(errors.Wrapf(err, "error parse uint:%v", idStr))
+		log.Println(errors.Wrapf(err, "error parse uint:%v", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	log.Printf("/users/%d handled", id)
@@ -62,17 +65,22 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusOK); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
+// CreateRequest is request format for Create
+type CreateRequest struct {
+	Name string `json:"name"`
+}
+
 // Create is user model's create
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	log.Printf("/users POST handled")
+	log.Print("/users POST handled")
 
-	req := &model.CreateRequest{}
+	req := &CreateRequest{}
 	if err := util.ScanRequest(r, req); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -96,9 +104,30 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusCreated); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// Delete is user model's delete
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error parse uint:%v", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("/users/%d DELETE handled", id)
+
+	if err := h.model.Delete(id); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

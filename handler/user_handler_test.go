@@ -42,6 +42,10 @@ func TestIndex(t *testing.T) {
 		t.Fatalf("status code %v", w.Code)
 	}
 
+	if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+		t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+	}
+
 	got := &model.IndexResponse{}
 	util.JSONRead(w, got)
 
@@ -78,6 +82,10 @@ func TestShow(t *testing.T) {
 			t.Fatalf("status code %v", w.Code)
 		}
 
+		if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+			t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+		}
+
 		got := &model.ShowResponse{}
 		if err := util.JSONRead(w, got); err != nil {
 			t.Fatal(err)
@@ -103,7 +111,7 @@ func TestCreate(t *testing.T) {
 	user := &schema.User{
 		Name: "hoge",
 	}
-	request := &model.CreateRequest{
+	request := &CreateRequest{
 		Name: user.Name,
 	}
 	want := &model.CreateResponse{
@@ -172,10 +180,45 @@ func TestCreate(t *testing.T) {
 				got := &model.CreateResponse{}
 				util.JSONRead(w, got)
 
+				if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+					t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+				}
 				if !reflect.DeepEqual(got, want) {
 					t.Errorf("responce got %v, want %v", got, want)
 				}
 			}
 		})
 	}
+}
+
+func TestDelete(t *testing.T) {
+	um := stub.NewUserModel()
+	um.DeleteStub = func(id uint64) error {
+		if id == 1 {
+			return nil
+		}
+		return errors.New("Delete stub error")
+	}
+
+	h := NewUserHandler(um)
+	r := h.NewUserServer()
+
+	t.Run("Success", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if want := http.StatusNoContent; w.Code != want {
+			t.Fatalf("status code %v, want %v", w.Code, want)
+		}
+	})
+
+	t.Run("Fail", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, "/users/2", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		if want := http.StatusInternalServerError; w.Code != want {
+			t.Fatalf("status code %v, want %v", w.Code, want)
+		}
+	})
 }

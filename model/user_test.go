@@ -117,6 +117,37 @@ func TestCreate(t *testing.T) {
 	})
 }
 
+func TestDelete(t *testing.T) {
+	db, err := util.TestDbNew()
+	if err != nil {
+		t.Fatal(err, "DB接続できませんでした")
+	}
+	defer util.TestDbClose(db)
+
+	um := NewUserModel(db)
+
+	t.Run("Success", func(t *testing.T) {
+		user := &schema.User{
+			ID:   1,
+			Name: "hoge",
+		}
+		if err := db.Create(&user).Error; err != nil {
+			t.Fatal(err)
+		}
+
+		err := um.Delete(user.ID)
+		if err != nil {
+			t.Fatalf("error Delete method %v", err)
+		}
+
+		count := 100 // 0が初期値だと困るので適当に代入
+		db.Model(&schema.User{}).Where("id == ?", user.ID).Count(&count)
+		if count > 0 {
+			t.Errorf("count got %v, want %v", count, 0)
+		}
+	})
+}
+
 func TestValidateUser(t *testing.T) {
 	db, err := util.TestDbNew()
 	if err != nil {
