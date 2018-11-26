@@ -42,6 +42,10 @@ func TestIndex(t *testing.T) {
 		t.Fatalf("status code %v", w.Code)
 	}
 
+	if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+		t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+	}
+
 	got := &model.IndexResponse{}
 	util.JSONRead(w, got)
 
@@ -76,6 +80,10 @@ func TestShow(t *testing.T) {
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("status code %v", w.Code)
+		}
+
+		if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+			t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
 		}
 
 		got := &model.ShowResponse{}
@@ -172,6 +180,9 @@ func TestCreate(t *testing.T) {
 				got := &model.CreateResponse{}
 				util.JSONRead(w, got)
 
+				if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+					t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+				}
 				if !reflect.DeepEqual(got, want) {
 					t.Errorf("responce got %v, want %v", got, want)
 				}

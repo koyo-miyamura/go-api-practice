@@ -39,7 +39,7 @@ func (h *UserHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	res := h.model.Index()
 
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusOK); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -65,7 +65,7 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusOK); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -104,8 +104,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	if err := util.JSONWrite(w, res); err != nil {
+	if err := util.JSONWrite(w, res, http.StatusCreated); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
