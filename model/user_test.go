@@ -117,6 +117,59 @@ func TestCreate(t *testing.T) {
 	})
 }
 
+func TestUpdate(t *testing.T) {
+	db, err := util.TestDbNew()
+	if err != nil {
+		t.Fatal(err, "DB接続できませんでした")
+	}
+	defer util.TestDbClose(db)
+
+	user := &schema.User{
+		ID:   1,
+		Name: "hoge",
+	}
+	if err := db.Create(&user).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	um := NewUserModel(db)
+
+	t.Run("Success", func(t *testing.T) {
+		updateUser := &schema.User{
+			ID:   user.ID,
+			Name: "updated",
+		}
+		res, err := um.Update(updateUser)
+		if err != nil {
+			t.Errorf("error Update method %v", err)
+		}
+
+		got := schema.User{}
+		if err := db.Find(&got, res.User.ID).Error; err != nil {
+			t.Fatalf("can't Find created user %v", res)
+		}
+		want := updateUser
+
+		if want.ID != got.ID {
+			t.Errorf("user ID got %v, want %v", got.ID, want.ID)
+		}
+
+		if want.Name != got.Name {
+			t.Errorf("user name got %v, want %v", got.Name, want.Name)
+		}
+	})
+
+	t.Run("User has no ID", func(t *testing.T) {
+		updateUser := &schema.User{
+			Name: "updated",
+		}
+		_, err := um.Update(updateUser)
+		if err == nil {
+			t.Errorf("id must exist, but success %v", updateUser)
+		}
+	})
+}
+
 func TestDelete(t *testing.T) {
 	db, err := util.TestDbNew()
 	if err != nil {
