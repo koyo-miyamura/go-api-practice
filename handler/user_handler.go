@@ -50,7 +50,9 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 	idStr := vars["id"]
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		log.Panicln(errors.Wrapf(err, "error parse uint:%v", idStr))
+		log.Println(errors.Wrapf(err, "error parse uint:%v", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	log.Printf("/users/%d handled", id)
