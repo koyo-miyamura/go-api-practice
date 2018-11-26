@@ -121,7 +121,7 @@ func TestCreate(t *testing.T) {
 			Title:      "Success",
 			Create:     true,
 			Validate:   true,
-			StatusCode: http.StatusOK,
+			StatusCode: http.StatusCreated,
 		},
 		{
 			Title:      "Validate false",

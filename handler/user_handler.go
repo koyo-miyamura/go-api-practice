@@ -96,6 +96,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	if err := util.JSONWrite(w, res); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
