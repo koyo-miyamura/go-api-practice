@@ -29,6 +29,7 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router.HandleFunc("/users", h.Index).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Show).Methods("GET")
 	router.HandleFunc("/users", h.Create).Methods("POST")
+	router.HandleFunc("/users/{id:[0-9]+}", h.Delete).Methods("DELETE")
 	return router
 }
 
@@ -77,7 +78,7 @@ type CreateRequest struct {
 
 // Create is user model's create
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	log.Printf("/users POST handled")
+	log.Print("/users POST handled")
 
 	req := &CreateRequest{}
 	if err := util.ScanRequest(r, req); err != nil {
@@ -108,4 +109,26 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// Delete is user model's delete
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error parse uint:%v", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("/users/%d DELETE handled", id)
+
+	if err := h.model.Delete(id); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
