@@ -103,7 +103,7 @@ func TestCreate(t *testing.T) {
 	user := &schema.User{
 		Name: "hoge",
 	}
-	request := &model.CreateRequest{
+	request := &CreateRequest{
 		Name: user.Name,
 	}
 	want := &model.CreateResponse{

@@ -68,11 +68,16 @@ func (h *UserHandler) Show(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateRequest is request format for Create
+type CreateRequest struct {
+	Name string `json:"name"`
+}
+
 // Create is user model's create
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/users POST handled")
 
-	req := &model.CreateRequest{}
+	req := &CreateRequest{}
 	if err := util.ScanRequest(r, req); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

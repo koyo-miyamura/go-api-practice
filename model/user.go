@@ -52,11 +52,6 @@ func (u *userModel) Show(id uint64) (*ShowResponse, error) {
 	return &ShowResponse{User: user}, nil
 }
 
-// CreateRequest is request format for Create
-type CreateRequest struct {
-	Name string `json:"name"`
-}
-
 // CreateResponse is response format for Create
 type CreateResponse struct {
 	User *schema.User `json:"user"`
