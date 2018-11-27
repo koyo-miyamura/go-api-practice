@@ -12,6 +12,7 @@ type UserModel struct {
 	IndexStub    func() *model.IndexResponse
 	ShowStub     func(id uint64) (*model.ShowResponse, error)
 	CreateStub   func(user *schema.User) (*model.CreateResponse, error)
+	UpdateStub   func(user *schema.User) (*model.UpdateResponse, error)
 	DeleteStub   func(id uint64) error
 	ValidateStub func(user *schema.User) error
 }
@@ -30,6 +31,13 @@ func (u *UserModel) Show(id uint64) (*model.ShowResponse, error) {
 func (u *UserModel) Create(user *schema.User) (*model.CreateResponse, error) {
 	return u.CreateStub(user)
 }
+
+// Update return stub of UserModel.Update
+func (u *UserModel) Update(user *schema.User) (*model.UpdateResponse, error) {
+	return u.UpdateStub(user)
+}
+
+// Delete return stub of UserModel.Delete
 func (u *UserModel) Delete(id uint64) error {
 	return u.DeleteStub(id)
 }
@@ -49,6 +57,9 @@ func NewUserModel() *UserModel {
 			return nil, errors.New("not implementation")
 		},
 		CreateStub: func(user *schema.User) (*model.CreateResponse, error) {
+			return nil, errors.New("not implementation")
+		},
+		UpdateStub: func(user *schema.User) (*model.UpdateResponse, error) {
 			return nil, errors.New("not implementation")
 		},
 		DeleteStub: func(id uint64) error {

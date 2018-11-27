@@ -29,6 +29,7 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router.HandleFunc("/users", h.Index).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Show).Methods("GET")
 	router.HandleFunc("/users", h.Create).Methods("POST")
+	router.HandleFunc("/users/{id:[0-9]+}", h.Update).Methods("PUT")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Delete).Methods("DELETE")
 	return router
 }
@@ -105,6 +106,55 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := util.JSONWrite(w, res, http.StatusCreated); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+// UpdateRequest is request format for Create
+type UpdateRequest struct {
+	Name string `json:"name"`
+}
+
+// Update is user model's update
+func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		log.Println(errors.Wrapf(err, "error parse uint:%v", idStr))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("/users/%d PUT handled", id)
+
+	req := &UpdateRequest{}
+	if err := util.ScanRequest(r, req); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user := &schema.User{
+		ID:   id,
+		Name: req.Name,
+	}
+
+	if err := h.model.Validate(user); err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.model.Update(user)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := util.JSONWrite(w, res, http.StatusOK); err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}

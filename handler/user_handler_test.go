@@ -114,12 +114,17 @@ func TestCreate(t *testing.T) {
 	request := &CreateRequest{
 		Name: user.Name,
 	}
+	input, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal("error Marshal test input")
+	}
 	want := &model.CreateResponse{
 		User: user,
 	}
 
 	type Test struct {
 		Title      string
+		NilInput   bool
 		Create     bool
 		Validate   bool
 		StatusCode int
@@ -127,18 +132,28 @@ func TestCreate(t *testing.T) {
 	tests := []Test{
 		{
 			Title:      "Success",
+			NilInput:   false,
 			Create:     true,
 			Validate:   true,
 			StatusCode: http.StatusCreated,
 		},
 		{
+			Title:      "Nil input",
+			NilInput:   true,
+			Create:     false,
+			Validate:   true, // 400のValidationケースエラーと区別
+			StatusCode: http.StatusBadRequest,
+		},
+		{
 			Title:      "Validate false",
+			NilInput:   false,
 			Create:     true,
 			Validate:   false,
 			StatusCode: http.StatusBadRequest,
 		},
 		{
 			Title:      "Create false",
+			NilInput:   false,
 			Create:     false,
 			Validate:   true,
 			StatusCode: http.StatusInternalServerError,
@@ -164,11 +179,12 @@ func TestCreate(t *testing.T) {
 			h := NewUserHandler(um)
 			r := h.NewUserServer()
 
-			input, err := json.Marshal(request)
-			if err != nil {
-				t.Fatal("error Marshal test input")
+			var req *http.Request
+			if test.NilInput {
+				req = httptest.NewRequest(http.MethodPost, "/users", nil)
+			} else {
+				req = httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(input))
 			}
-			req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(input))
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
@@ -178,6 +194,106 @@ func TestCreate(t *testing.T) {
 
 			if test.Create && test.Validate {
 				got := &model.CreateResponse{}
+				util.JSONRead(w, got)
+
+				if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+					t.Errorf("Content-type got %#v, want %#v", contentType, "application/json")
+				}
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("responce got %v, want %v", got, want)
+				}
+			}
+		})
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	user := &schema.User{
+		Name: "hoge",
+	}
+	request := &UpdateRequest{
+		Name: user.Name,
+	}
+	input, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal("error Marshal test input")
+	}
+	want := &model.UpdateResponse{
+		User: user,
+	}
+
+	type Test struct {
+		Title      string
+		NilInput   bool
+		Update     bool
+		Validate   bool
+		StatusCode int
+	}
+	tests := []Test{
+		{
+			Title:      "Success",
+			NilInput:   false,
+			Update:     true,
+			Validate:   true,
+			StatusCode: http.StatusOK,
+		},
+		{
+			Title:      "Nil Input",
+			NilInput:   true,
+			Update:     false,
+			Validate:   true, // 400のValidationケースエラーと区別
+			StatusCode: http.StatusBadRequest,
+		},
+		{
+			Title:      "Validate false",
+			NilInput:   false,
+			Update:     true,
+			Validate:   false,
+			StatusCode: http.StatusBadRequest,
+		},
+		{
+			Title:      "Update false",
+			NilInput:   false,
+			Update:     false,
+			Validate:   true,
+			StatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Title, func(t *testing.T) {
+			um := stub.NewUserModel()
+			um.UpdateStub = func(user *schema.User) (*model.UpdateResponse, error) {
+				if test.Update {
+					return want, nil
+				}
+				return nil, errors.New("create error")
+			}
+			um.ValidateStub = func(user *schema.User) error {
+				if test.Validate {
+					return nil
+				}
+				return errors.New("validate error")
+			}
+
+			h := NewUserHandler(um)
+			r := h.NewUserServer()
+
+			var req *http.Request
+			if test.NilInput {
+				req = httptest.NewRequest(http.MethodPut, "/users/1", nil)
+			} else {
+				req = httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewBuffer(input))
+			}
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != test.StatusCode {
+				t.Errorf("status code got %v, want %v", w.Code, test.StatusCode)
+			}
+
+			if test.Update && test.Validate {
+				got := &model.UpdateResponse{}
 				util.JSONRead(w, got)
 
 				if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
