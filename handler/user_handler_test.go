@@ -114,12 +114,17 @@ func TestCreate(t *testing.T) {
 	request := &CreateRequest{
 		Name: user.Name,
 	}
+	input, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal("error Marshal test input")
+	}
 	want := &model.CreateResponse{
 		User: user,
 	}
 
 	type Test struct {
 		Title      string
+		NilInput   bool
 		Create     bool
 		Validate   bool
 		StatusCode int
@@ -127,18 +132,28 @@ func TestCreate(t *testing.T) {
 	tests := []Test{
 		{
 			Title:      "Success",
+			NilInput:   false,
 			Create:     true,
 			Validate:   true,
 			StatusCode: http.StatusCreated,
 		},
 		{
+			Title:      "Nil input",
+			NilInput:   true,
+			Create:     false,
+			Validate:   true, // 400のValidationケースエラーと区別
+			StatusCode: http.StatusBadRequest,
+		},
+		{
 			Title:      "Validate false",
+			NilInput:   false,
 			Create:     true,
 			Validate:   false,
 			StatusCode: http.StatusBadRequest,
 		},
 		{
 			Title:      "Create false",
+			NilInput:   false,
 			Create:     false,
 			Validate:   true,
 			StatusCode: http.StatusInternalServerError,
@@ -164,11 +179,12 @@ func TestCreate(t *testing.T) {
 			h := NewUserHandler(um)
 			r := h.NewUserServer()
 
-			input, err := json.Marshal(request)
-			if err != nil {
-				t.Fatal("error Marshal test input")
+			var req *http.Request
+			if test.NilInput {
+				req = httptest.NewRequest(http.MethodPost, "/users", nil)
+			} else {
+				req = httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(input))
 			}
-			req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(input))
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
