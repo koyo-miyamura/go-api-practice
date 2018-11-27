@@ -201,7 +201,7 @@ func TestDelete(t *testing.T) {
 	})
 }
 
-func TestValidateUser(t *testing.T) {
+func TestValidate(t *testing.T) {
 	db, err := util.TestDbNew()
 	if err != nil {
 		t.Fatal(err, "DB接続できませんでした")
@@ -209,6 +209,7 @@ func TestValidateUser(t *testing.T) {
 	defer util.TestDbClose(db)
 
 	existUser := schema.User{
+		ID:   1,
 		Name: "duplicated",
 	}
 	db.Create(&existUser)
@@ -240,8 +241,14 @@ func TestValidateUser(t *testing.T) {
 			Want: false,
 		},
 		{
-			Title: "Duplicated name",
+			Title: "Not change",
+			User:  &existUser,
+			Want:  true,
+		},
+		{
+			Title: "Duplicated name with others",
 			User: &schema.User{
+				ID:   existUser.ID + 1,
 				Name: existUser.Name,
 			},
 			Want: false,

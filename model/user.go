@@ -113,7 +113,8 @@ func (u *userModel) Validate(user *schema.User) error {
 	}
 
 	var count int
-	u.db.Model(&schema.User{}).Where("name == ?", user.Name).Count(&count)
+	// 自分自身の名前とは重複していてよい
+	u.db.Model(&schema.User{}).Where("name == ?", user.Name).Not("id", user.ID).Count(&count)
 	if count > 0 {
 		return errors.New("Name must be unique")
 	}
