@@ -78,6 +78,7 @@ type UpdateResponse struct {
 	User *schema.User `json:"user"`
 }
 
+// Update update user
 func (u *userModel) Update(user *schema.User) (*UpdateResponse, error) {
 	if user == nil {
 		return nil, errors.New("nil can't create")
@@ -94,6 +95,7 @@ func (u *userModel) Update(user *schema.User) (*UpdateResponse, error) {
 	return res, nil
 }
 
+// Delete delete user by id
 func (u *userModel) Delete(id uint64) error {
 	deleteUser := &schema.User{
 		ID: id,
