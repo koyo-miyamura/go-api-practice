@@ -80,6 +80,7 @@ export default {
         return
       }
       this.loading = true
+      this.isError = false
       axios
         .delete(`${this.url}/${user.id}`)
         .then(response => {
@@ -87,6 +88,7 @@ export default {
         })
         .catch(error => {
           console.log(error)
+          this.isError = true
         })
         .finally(() => {
           this.loading = false
