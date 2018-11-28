@@ -1,6 +1,31 @@
 <template>
   <div>
-    <nuxt/>
+    <b-navbar
+      toggleable="md"
+      type="dark"
+      variant="info">
+
+      <b-navbar-brand href="#" class="mr-10" tag="h1">
+        <nuxt-link to="/" tag="span">
+          <b>GoPI</b>
+        </nuxt-link>
+        </b-navbar-brand>
+
+      <b-navbar-toggle target="nav_collapse"/>
+
+      <b-collapse
+        id="nav_collapse"
+        is-nav>
+
+        <b-navbar-nav>
+          <b-nav-item><nuxt-link to="/users/new" tag="span">Link</nuxt-link></b-nav-item>
+        </b-navbar-nav>
+
+      </b-collapse>
+    </b-navbar>
+    <b-container>
+      <nuxt/>
+    </b-container>
   </div>
 </template>
 
