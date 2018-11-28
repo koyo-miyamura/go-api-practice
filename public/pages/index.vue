@@ -8,7 +8,7 @@
         </b-button>
       </template>
     </b-table>
-    <b-form class="form" @submit="postUser">
+    <b-form class="form" @submit.prevent="postUser">
       <h2>New User</h2>
       <b-form-group label="Name:">
         <b-form-input type="text"
@@ -72,7 +72,7 @@ export default {
           console.log(response)
         })
         .catch(error => {
-          console.log(response)
+          console.log(error)
         })
         .finally(() => {
           this.loading = false
@@ -80,7 +80,19 @@ export default {
         })
     },
     postUser() {
-      alert(this.form.name)
+      axios
+        .post(this.url, {
+          name: this.name
+        })
+        .then(response => {
+          console.log('Created' + response)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+        .finally(() => {
+          this.getApiData()
+        })
     }
   },
   mounted() {
