@@ -1,6 +1,12 @@
 <template>
   <div v-if="!loading">
     <h2>Users</h2>
+    <b-alert variant="danger"
+             dismissible
+             :show="isError"
+             @dismissed="isError=false">
+      Error status {{ error.response.status }} {{ error.response.statusText }}
+    </b-alert>
     <b-table striped :items="users" :fields="fields">
       <template slot="name" slot-scope="row">
         <nuxt-link :to="{ path: 'users/' + row.item.id }">{{row.item.name}}</nuxt-link>
@@ -43,7 +49,14 @@ export default {
       form: {
         name: ''
       },
-      url: 'http://localhost:8080/users'
+      url: 'http://localhost:8080/users',
+      error: {
+        response: {
+          status: '',
+          statusText: ''
+        }
+      },
+      isError: false
     }
   },
   methods: {
@@ -81,15 +94,18 @@ export default {
         })
     },
     postUser() {
+      this.isError = false
       axios
         .post(this.url, {
           name: this.form.name
         })
         .then(response => {
-          console.log('Created' + response)
+          console.log('Created' + response.data)
         })
         .catch(error => {
           console.log(error)
+          this.error = error
+          this.isError = true
         })
         .finally(() => {
           this.getApiData()
