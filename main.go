@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/koyo-miyamura/go-api-practice/handler"
 	"github.com/koyo-miyamura/go-api-practice/lib/util"
 	"github.com/koyo-miyamura/go-api-practice/model"
@@ -21,5 +22,10 @@ func main() {
 	userModel := model.NewUserModel(db)
 	userHandler := handler.NewUserHandler(userModel)
 	userServer := userHandler.NewUserServer()
-	log.Fatal(http.ListenAndServe(":8080", userServer))
+
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"})
+	corsMiddleWare := handlers.CORS(allowedMethods)
+	server := corsMiddleWare(userServer)
+
+	log.Fatal(http.ListenAndServe(":8080", server))
 }

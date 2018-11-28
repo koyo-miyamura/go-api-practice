@@ -72,7 +72,6 @@ func JSONRead(w *httptest.ResponseRecorder, res interface{}) error {
 func JSONWrite(w http.ResponseWriter, response interface{}, statusCode int) error {
 	// w.Header().Set(), w.WriteHeader, w.Write の順に書き込まないと動作しないので注意
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	w.WriteHeader(statusCode)
 
 	jsonResponse, err := json.Marshal(response)
