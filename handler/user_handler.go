@@ -31,6 +31,12 @@ func (h *UserHandler) NewUserServer() *mux.Router {
 	router.HandleFunc("/users", h.Create).Methods("POST")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Update).Methods("PUT")
 	router.HandleFunc("/users/{id:[0-9]+}", h.Delete).Methods("DELETE")
+
+	// Handle VueAPP
+	router.PathPrefix("/_nuxt").Handler(http.FileServer(http.Dir("public/dist")))
+	router.PathPrefix("/").HandlerFunc(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "public/dist/index.html")
+	}))
 	return router
 }
 
