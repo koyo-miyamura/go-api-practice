@@ -51,6 +51,10 @@ module.exports = {
     // See https://github.com/nuxt-community/axios-module#options
   },
 
+  router: {
+    base: process.env.NODE_ENV === 'dev' ? '/' : '/static'
+  },
+
   /*
   ** Build configuration
   */
