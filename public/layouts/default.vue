@@ -10,18 +10,6 @@
           <b>GoPI</b>
         </nuxt-link>
         </b-navbar-brand>
-
-      <b-navbar-toggle target="nav_collapse"/>
-
-      <b-collapse
-        id="nav_collapse"
-        is-nav>
-
-        <b-navbar-nav>
-          <b-nav-item><nuxt-link to="/users/new" tag="span">Link</nuxt-link></b-nav-item>
-        </b-navbar-nav>
-
-      </b-collapse>
     </b-navbar>
     <b-container>
       <nuxt/>

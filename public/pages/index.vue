@@ -2,6 +2,9 @@
   <div v-if="!loading">
     <h2>Users</h2>
     <b-table striped :items="users" :fields="fields">
+      <template slot="name" slot-scope="row">
+        <nuxt-link :to="{ path: 'users/' + row.item.id }">{{row.item.name}}</nuxt-link>
+      </template>
       <template slot="action" slot-scope="row">
         <b-button variant="danger" size="sm" @click.stop="deleteUser(row.item)">
           Delete
@@ -27,7 +30,6 @@
   margin-bottom: 30px;
 }
 </style>
-
 
 <script>
 import axios from 'axios'
@@ -55,7 +57,6 @@ export default {
         })
         .catch(error => {
           console.log(error)
-          this.errored = true
         })
         .finally(() => {
           this.loading = false
