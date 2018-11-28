@@ -1,5 +1,5 @@
 <template>
-  <b-form class="form" @submit.prevent="postUser">
+  <b-form class="form" @submit.prevent="updateUser">
       <h2>Edit User</h2>
       <b-form-group label="Name:">
         <b-form-input type="text"
@@ -42,10 +42,11 @@ export default {
     updateUser() {
       axios
         .put(this.url, {
-          name: this.form.name
+          name: this.user.name
         })
         .then(response => {
           console.log('Updated' + response.data)
+          this.$router.push('/')
         })
         .catch(error => {
           console.log(error)
