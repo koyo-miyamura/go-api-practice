@@ -82,7 +82,7 @@ export default {
     postUser() {
       axios
         .post(this.url, {
-          name: this.name
+          name: this.form.name
         })
         .then(response => {
           console.log('Created' + response)
