@@ -3,10 +3,15 @@
 
 ## Quick Start
 ### Go serve
-※ You need to install [dep](https://github.com/golang/dep)
+※ You need to install [dep](https://github.com/golang/dep) and [npm](https://www.npmjs.com/)
+※ You need to set `GOPATH` and this project is under `GOPATH` (`go get github.com/koyo-miyamura/go-api-practice`)
 
 ```bash
 make setup
+cd public
+npm install
+npm run generate
+cd ..
 go run main.go
 curl localhost:8080/users
 ```
@@ -20,6 +25,7 @@ To check implimentation for CORS
 make setup
 go run main.go
 cd public
+npm install
 npm run dev
 ```
 
