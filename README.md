@@ -24,6 +24,10 @@ To check implimentation for CORS
 ```bash
 make setup
 go run main.go
+```
+
+Open another terminal
+```bash
 cd public
 npm install
 npm run dev
